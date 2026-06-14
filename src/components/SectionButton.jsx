@@ -6,18 +6,17 @@ export default function SectionButton({ label, isActive, onClick, align = 'start
       onClick={onClick}
       style={{
         fontFamily:    'var(--font-family)',
-        fontSize:      '22px',
-        fontWeight:    isActive ? '800' : '600',
+        fontSize:      '15px',
+        fontWeight:    isActive ? '700' : '500',
         color:         isActive ? 'var(--color-fg-primary)' : 'var(--color-fg-secondary)',
         background:    'none',
         border:        'none',
         cursor:        'pointer',
-        padding:       '0',
         textAlign:     align,
         transition:    `color ${M}, opacity ${M}, font-weight ${M}`,
         display:       'block',
         width:         '100%',
-        fontVariant:    'all-small-caps',
+        textTransform: 'uppercase',
       }}
       onMouseEnter={e => {
         if (!isActive) e.target.style.color = 'var(--color-fg-primary)';

@@ -1,4 +1,4 @@
-export const fontFamily = "Google Sans, sans-serif";
+export const fontFamily = "Aleo, serif";
 
 export const motion = {
   duration: '0.4s',

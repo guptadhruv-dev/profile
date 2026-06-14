@@ -46,8 +46,8 @@ export default function ThemeProvider({ children }) {
       root.style.setProperty(`--syntax-${key}`, value);
     }
 
-    root.style.setProperty('--motion-duration', motion.duration);
-    root.style.setProperty('--motion-ease',     motion.ease);
+    root.style.setProperty('--motion-duration',   motion.duration);
+    root.style.setProperty('--motion-ease',       motion.ease);
 
     try {
       window.localStorage.setItem(STORAGE_KEY, mode);

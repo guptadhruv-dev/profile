@@ -6,7 +6,6 @@ export default function Divider({ style }) {
         height: '1px',
         backgroundColor: 'var(--color-fg-secondary)',
         opacity: '0.5',
-        borderRadius: '999px',
         ...style,
       }}
     />

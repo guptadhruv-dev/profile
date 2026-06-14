@@ -31,8 +31,8 @@ export default function Callout({ node, children }) {
         aria-hidden="true"
         style={{
           color:                 accent,
-          fontSize:              '1.3em',
-          alignSelf:             'center',
+          fontSize:              '1.4em',
+          alignSelf:             'top',
           flexShrink:            0,
           fontVariationSettings: `'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24`,
         }}

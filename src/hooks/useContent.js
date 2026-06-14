@@ -17,6 +17,7 @@ function parseFrontmatter(raw) {
     if (val === 'true')       meta[key] = true;
     else if (val === 'false') meta[key] = false;
     else if (/^\d+$/.test(val)) meta[key] = Number(val);
+    else if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) meta[key] = val.slice(1, -1);
     else                      meta[key] = val;
   }
   return { meta, content };
@@ -43,11 +44,7 @@ export function useContent() {
               .then(raw => {
                 const { meta, content } = parseFrontmatter(raw);
                 const id = filename.replace(/\.md$/, '');
-                const vars = {};
-                for (const [k, v] of Object.entries(meta)) {
-                  if (k.startsWith('$')) vars[k.slice(1)] = v;
-                }
-                return { id, label: meta.label, rank: meta.rank, vars, content };
+                return { id, label: meta.label, rank: meta.rank, vars: meta, content };
               })
           )
         )

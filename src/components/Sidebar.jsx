@@ -51,9 +51,9 @@ export default function Sidebar({ activeSection, onNavClick, sections = [] }) {
   const sidebarWidth  = collapsed ? 'var(--sidebar-collapsed-width)' : expandedWidth;
   const morphTransition = `top ${M}, left ${M}, transform ${M}`;
 
-  const PAD_X      = collapsed ? 15 : 25;
-  const linksWidth = collapsed ? '100%' : `calc(${expandedWidth} - ${PAD_X * 2}px)`;
-  const linksAlign = isMobile || collapsed ? 'center' : 'flex-start';
+  const PAD_X      = collapsed ? 15 : 20;
+  const linksWidth = collapsed ? '100%' : `calc(${expandedWidth}`;
+  const linksAlign = 'center';
 
   return (
     <aside
@@ -115,7 +115,7 @@ export default function Sidebar({ activeSection, onNavClick, sections = [] }) {
               aria-hidden="true"
               style={{
                 gridArea:              '1 / 1',
-                fontSize:              '24px',
+                fontSize:              '26px',
                 lineHeight:            1,
                 opacity:               collapsed ? 0 : 1,
                 transform:             collapsed ? 'rotate(-90deg) scale(0.7)' : 'rotate(0deg) scale(1)',
@@ -193,10 +193,10 @@ export default function Sidebar({ activeSection, onNavClick, sections = [] }) {
               width:           '100%',
               maxWidth:        '150px',
               aspectRatio:     '1/1',
-              flexShrink:      0,
-              borderRadius:    '14px',
+              flexShrink:       0,
+              borderRadius:    '5%',
               overflow:        'hidden',
-              backgroundColor: avatarSrc ? 'transparent' : 'var(--color-fg-secondary)',
+              backgroundColor: 'var(--color-fg-primary)',
               opacity:         avatarSrc ? 1 : 0.15,
             }}>
               {avatarSrc ? (
@@ -302,7 +302,7 @@ export default function Sidebar({ activeSection, onNavClick, sections = [] }) {
       </div>
 
       <div style={{ width: linksWidth, alignSelf: linksAlign, flexShrink: 0 }}>
-        <Links vertical={collapsed} center={isMobile || collapsed} />
+        <Links vertical={collapsed} center />
       </div>
     </aside>
   );
