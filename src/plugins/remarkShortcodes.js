@@ -1,7 +1,20 @@
-const OPEN_RE   = /^::([a-zA-Z][a-zA-Z0-9_-]*)(?:\s*\{([^}]*)\})?\s*$/;
-const CLOSE_RE  = /^::end\s*$/;
-const INLINE_RE = /::([a-zA-Z][a-zA-Z0-9_-]*)\s*\{([^}]*)\}/g;
-const PROP_RE   = /([a-zA-Z_][a-zA-Z0-9_-]*)\s*=\s*(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)')/g;
+const OPEN_RE     = /^::([a-zA-Z][a-zA-Z0-9_-]*)(?:\s*\{([^}]*)\})?\s*$/;
+const CLOSE_RE    = /^::end\s*$/;
+const INLINE_RE   = /::([a-zA-Z][a-zA-Z0-9_-]*)\s*\{([^}]*)\}/g;
+const PROP_RE     = /([a-zA-Z_][a-zA-Z0-9_-]*)\s*=\s*(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)')/g;
+const LEADING_RE  = /^\s*(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)')\s*,?\s*/;
+
+const POSITIONAL = {
+  badge:    ['label'],
+  icon:     ['name'],
+  ref:      ['to'],
+  anchor:   ['id'],
+  callout:  ['type'],
+  card:     ['title'],
+  embed:    ['src'],
+  bookmark: ['href'],
+  gallery:  ['images'],
+};
 
 const BLOCK_NAMES  = new Set(['toggle', 'callout', 'columns', 'col', 'card', 'gallery', 'embed', 'bookmark']);
 const VOID_NAMES   = new Set(['gallery', 'embed', 'bookmark']);
@@ -49,12 +62,24 @@ export function normalizeShortcodes(input) {
   return out.join('\n');
 }
 
-function parseProps(input) {
+function parseProps(input, name) {
   const out = {};
   if (typeof input !== 'string' || input.length === 0) return out;
+
+  let rest = input;
+  const positional = POSITIONAL[name];
+  if (positional) {
+    for (const key of positional) {
+      const lead = rest.match(LEADING_RE);
+      if (!lead) break;
+      out[key] = lead[1] !== undefined ? lead[1] : lead[2];
+      rest = rest.slice(lead[0].length);
+    }
+  }
+
   PROP_RE.lastIndex = 0;
   let m;
-  while ((m = PROP_RE.exec(input)) !== null) {
+  while ((m = PROP_RE.exec(rest)) !== null) {
     out[m[1]] = castValue(m[2] !== undefined ? m[2] : m[3]);
   }
   return out;
@@ -150,7 +175,7 @@ function transformBlocks(parent) {
 
     if (open && BLOCK_NAMES.has(open[1])) {
       const name  = open[1];
-      const props = parseProps(open[2]);
+      const props = parseProps(open[2], name);
 
       if (VOID_NAMES.has(name)) {
         out.push({
@@ -237,7 +262,7 @@ function transformInlines(node) {
           replacements.push({ type: 'text', value: value.slice(last, m.index) });
         }
 
-        const props = parseProps(m[2]);
+        const props = parseProps(m[2], name);
         replacements.push({
           type: 'shortcode',
           name,

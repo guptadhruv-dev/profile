@@ -5,16 +5,6 @@ const COLOR_MAP = {
   secondary: 'var(--color-fg-secondary)',
 };
 
-const WEIGHT_MAP = {
-  thin:       100,
-  extralight: 200,
-  light:      300,
-  regular:    400,
-  medium:     500,
-  semibold:   600,
-  bold:       700,
-};
-
 const GRAD_MAP = {
   low:    -25,
   normal:   0,
@@ -36,9 +26,7 @@ export default function Icon({ node, name: directName }) {
 
   const explicitSize = size !== undefined && size !== null;
   const fontSize     = explicitSize ? toNumber(size, 28) : null;
-  const weightVal    = typeof weight === 'string' && weight in WEIGHT_MAP
-    ? WEIGHT_MAP[weight]
-    : toNumber(weight, 100);
+  const weightVal    = weight ? toNumber(size, 200) : 200;
   const fillVal      = fill === true || fill === 1 || fill === 'true' || fill === '1' ? 1 : 0;
   const gradVal      = typeof grad === 'string' && grad in GRAD_MAP
     ? GRAD_MAP[grad]
@@ -54,7 +42,7 @@ export default function Icon({ node, name: directName }) {
       className="material-symbols-outlined"
       aria-hidden="true"
       style={{
-        fontSize:              fontSize != null ? `${fontSize}px` : '1.2em',
+        fontSize:              fontSize != null ? `${fontSize}px` : '1.6em',
         lineHeight:            '1.0em',
         paddingBottom:         '0.2em',
         display:               'inline-block',

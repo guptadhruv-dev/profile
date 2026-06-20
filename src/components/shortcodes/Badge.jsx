@@ -24,7 +24,6 @@ export default function Badge({ node }) {
         border:        `1px solid color-mix(in srgb, ${tint} 32%, transparent)`,
         alignSelf:     'center',
         margin:        '5px 2.5px',
-
       }}
     >
       {iconName && (

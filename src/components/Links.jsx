@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from 'react';
 import { GithubLogo, LinkedinLogo, EnvelopeSimple, DownloadSimple } from '@phosphor-icons/react';
 import { motion } from 'framer-motion';
 import { transition } from '../motion';
@@ -11,31 +10,10 @@ const links = [
 ];
 
 const M         = 'var(--motion-duration) var(--motion-ease)';
-const ICON_SIZE = 24;
-const GAP       = 10;
-const N         = links.length;
+const ICON_SIZE = 22;
+const MIN_GAP   = 10;
 
-function balancedCols(containerWidth) {
-  const maxPerRow = Math.max(1, Math.floor((containerWidth + GAP) / (ICON_SIZE + GAP)));
-  if (maxPerRow >= N) return N;
-  const rows = Math.ceil(N / maxPerRow);
-  return Math.ceil(N / rows);
-}
-
-export default function Links({ vertical = false, center = false }) {
-  const containerRef = useRef(null);
-  const [cols, setCols] = useState(N);
-
-  useEffect(() => {
-    if (vertical) return;
-    const el = containerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => setCols(balancedCols(el.clientWidth)));
-    ro.observe(el);
-    setCols(balancedCols(el.clientWidth));
-    return () => ro.disconnect();
-  }, [vertical]);
-
+export default function Links({ vertical = false }) {
   const iconEl = ({ Icon, href, label }) => (
     <motion.a
       layout
@@ -63,7 +41,7 @@ export default function Links({ vertical = false, center = false }) {
 
   if (vertical) {
     return (
-      <motion.div layout transition={transition} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: GAP }}>
+      <motion.div layout transition={transition} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: MIN_GAP, flexShrink: 0 }}>
         {links.map(iconEl)}
       </motion.div>
     );
@@ -71,15 +49,16 @@ export default function Links({ vertical = false, center = false }) {
 
   return (
     <motion.div
-      ref={containerRef}
       layout
       transition={transition}
       style={{
-        display:             'grid',
-        gridTemplateColumns: `repeat(${cols}, ${ICON_SIZE}px)`,
-        justifyContent:      center ? 'center' : 'start',
-        gap:                 GAP,
-        width:               '100%',
+        display:        'flex',
+        flexWrap:       'wrap',
+        justifyContent: 'space-between',
+        columnGap:      MIN_GAP,
+        rowGap:         MIN_GAP,
+        width:          '100%',
+        flexShrink:     0,
       }}
     >
       {links.map(iconEl)}

@@ -26,13 +26,6 @@ export function toIconName(value) {
   return value.trim().toLowerCase().replace(/\s+/g, '_');
 }
 
-export function resolveColor(color, fallback = 'var(--color-fg-secondary)') {
-  if (typeof color !== 'string' || color.length === 0) return fallback;
-  if (color === 'primary')   return 'var(--color-fg-primary)';
-  if (color === 'secondary') return 'var(--color-fg-secondary)';
-  return color;
-}
-
 export function resolveBadgeColor(color, fallback = 'var(--color-fg-secondary)') {
   if (typeof color !== 'string' || !/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(color)) {
     return fallback;
