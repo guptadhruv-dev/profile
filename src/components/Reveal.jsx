@@ -1,10 +1,11 @@
-import { motion, useReducedMotion } from 'framer-motion';
-import { transition, fadeUp } from '../motion';
+import { motion } from 'framer-motion'
+import { transition, fadeUp } from '../motion'
+import { usePrefersReducedMotion } from '../shared'
 
 export default function Reveal({ children, className, delay = 0 }) {
-  const reduced = useReducedMotion();
+  const reduced = usePrefersReducedMotion()
 
-  if (reduced) return <div className={className}>{children}</div>;
+  if (reduced) return <div className={className}>{children}</div>
 
   return (
     <motion.div
@@ -17,5 +18,5 @@ export default function Reveal({ children, className, delay = 0 }) {
     >
       {children}
     </motion.div>
-  );
+  )
 }

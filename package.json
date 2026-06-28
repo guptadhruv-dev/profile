@@ -1,15 +1,16 @@
 {
-  "name": "interactive-portfolio",
+  "name": "interactive-io",
   "private": true,
   "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint . --cache",
+    "format": "prettier --write ."
   },
   "dependencies": {
-    "@phosphor-icons/react": "^2.1.10",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^11.18.2",
     "react": "^18.3.1",
@@ -21,6 +22,11 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^9.1.2",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^15.15.0",
+    "prettier": "^3.9.1",
     "vite": "^5.4.2"
   }
 }

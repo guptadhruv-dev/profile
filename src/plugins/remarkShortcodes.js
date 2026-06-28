@@ -1,181 +1,191 @@
-const OPEN_RE     = /^::([a-zA-Z][a-zA-Z0-9_-]*)(?:\s*\{([^}]*)\})?\s*$/;
-const CLOSE_RE    = /^::end\s*$/;
-const INLINE_RE   = /::([a-zA-Z][a-zA-Z0-9_-]*)\s*\{([^}]*)\}/g;
-const PROP_RE     = /([a-zA-Z_][a-zA-Z0-9_-]*)\s*=\s*(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)')/g;
-const LEADING_RE  = /^\s*(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)')\s*,?\s*/;
+const OPEN_RE = /^::([a-zA-Z][a-zA-Z0-9_-]*)(?:\s*\{([^}]*)\})?\s*$/
+const CLOSE_RE = /^::end\s*$/
+const INLINE_RE = /::([a-zA-Z][a-zA-Z0-9_-]*)\s*\{([^}]*)\}/g
+const PROP_RE = /([a-zA-Z_][a-zA-Z0-9_-]*)\s*=\s*(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)')/g
+const LEADING_RE = /^\s*(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)')\s*,?\s*/
 
 const POSITIONAL = {
-  badge:    ['label'],
-  icon:     ['name'],
-  ref:      ['to'],
-  anchor:   ['id'],
-  callout:  ['type'],
-  card:     ['title'],
-  embed:    ['src'],
+  badge: ['label'],
+  icon: ['name'],
+  ref: ['to'],
+  anchor: ['id'],
+  callout: ['type'],
+  card: ['title'],
+  embed: ['src'],
   bookmark: ['href'],
-  gallery:  ['images'],
-};
+  gallery: ['images'],
+}
 
-const BLOCK_NAMES  = new Set(['toggle', 'callout', 'columns', 'col', 'card', 'gallery', 'embed', 'bookmark']);
-const VOID_NAMES   = new Set(['gallery', 'embed', 'bookmark']);
-const INLINE_NAMES = new Set(['icon', 'badge', 'ref', 'anchor']);
+const BLOCK_NAMES = new Set([
+  'toggle',
+  'callout',
+  'columns',
+  'col',
+  'card',
+  'gallery',
+  'embed',
+  'bookmark',
+])
+const VOID_NAMES = new Set(['gallery', 'embed', 'bookmark'])
+const INLINE_NAMES = new Set(['icon', 'badge', 'ref', 'anchor'])
 
-const FENCE_RE = /^(`{3,}|~{3,})/;
+const FENCE_RE = /^(`{3,}|~{3,})/
 
 export function normalizeShortcodes(input) {
-  if (typeof input !== 'string') return input;
-  const lines = input.split('\n');
-  const out = [];
-  let inFence = false;
-  let fenceChar = '';
+  if (typeof input !== 'string') return input
+  const lines = input.split('\n')
+  const out = []
+  let inFence = false
+  let fenceChar = ''
 
   for (let i = 0; i < lines.length; i++) {
-    const line    = lines[i];
-    const trimmed = line.trim();
+    const line = lines[i]
+    const trimmed = line.trim()
 
-    const fenceMatch = trimmed.match(FENCE_RE);
+    const fenceMatch = trimmed.match(FENCE_RE)
     if (fenceMatch) {
       if (!inFence) {
-        inFence = true;
-        fenceChar = fenceMatch[1][0];
+        inFence = true
+        fenceChar = fenceMatch[1][0]
       } else if (trimmed.startsWith(fenceChar.repeat(3))) {
-        inFence = false;
+        inFence = false
       }
-      out.push(line);
-      continue;
+      out.push(line)
+      continue
     }
 
     if (inFence) {
-      out.push(line);
-      continue;
+      out.push(line)
+      continue
     }
 
     if (OPEN_RE.test(trimmed) || CLOSE_RE.test(trimmed)) {
-      if (out.length > 0 && out[out.length - 1].trim() !== '') out.push('');
-      out.push(trimmed);
-      if (i + 1 < lines.length && lines[i + 1].trim() !== '') out.push('');
+      if (out.length > 0 && out[out.length - 1].trim() !== '') out.push('')
+      out.push(trimmed)
+      if (i + 1 < lines.length && lines[i + 1].trim() !== '') out.push('')
     } else {
-      out.push(line);
+      out.push(line)
     }
   }
 
-  return out.join('\n');
+  return out.join('\n')
 }
 
 function parseProps(input, name) {
-  const out = {};
-  if (typeof input !== 'string' || input.length === 0) return out;
+  const out = {}
+  if (typeof input !== 'string' || input.length === 0) return out
 
-  let rest = input;
-  const positional = POSITIONAL[name];
+  let rest = input
+  const positional = POSITIONAL[name]
   if (positional) {
     for (const key of positional) {
-      const lead = rest.match(LEADING_RE);
-      if (!lead) break;
-      out[key] = lead[1] !== undefined ? lead[1] : lead[2];
-      rest = rest.slice(lead[0].length);
+      const lead = rest.match(LEADING_RE)
+      if (!lead) break
+      out[key] = lead[1] !== undefined ? lead[1] : lead[2]
+      rest = rest.slice(lead[0].length)
     }
   }
 
-  PROP_RE.lastIndex = 0;
-  let m;
+  PROP_RE.lastIndex = 0
+  let m
   while ((m = PROP_RE.exec(rest)) !== null) {
-    out[m[1]] = castValue(m[2] !== undefined ? m[2] : m[3]);
+    out[m[1]] = castValue(m[2] !== undefined ? m[2] : m[3])
   }
-  return out;
+  return out
 }
 
 function castValue(value) {
-  if (value === 'true')  return true;
-  if (value === 'false') return false;
-  if (/^-?\d+(?:\.\d+)?$/.test(value)) return Number(value);
-  return value;
+  if (value === 'true') return true
+  if (value === 'false') return false
+  if (/^-?\d+(?:\.\d+)?$/.test(value)) return Number(value)
+  return value
 }
 
 function paragraphText(node) {
-  if (!node || node.type !== 'paragraph') return null;
-  if (!Array.isArray(node.children) || node.children.length === 0) return null;
+  if (!node || node.type !== 'paragraph') return null
+  if (!Array.isArray(node.children) || node.children.length === 0) return null
 
-  let out = '';
+  let out = ''
   for (const child of node.children) {
     if (child.type === 'text') {
-      out += child.value;
+      out += child.value
     } else if (child.type === 'link' && typeof child.url === 'string') {
-      out += child.url;
+      out += child.url
     } else {
-      return null;
+      return null
     }
   }
-  return out.trim();
+  return out.trim()
 }
 
 function makeData(name, props) {
   return {
     hName: 'shortcode-' + name,
     hProperties: { dataProps: JSON.stringify(props) },
-  };
+  }
 }
 
 function splitParagraphLines(parent) {
-  if (!parent || !Array.isArray(parent.children)) return;
-  const out = [];
+  if (!parent || !Array.isArray(parent.children)) return
+  const out = []
 
   for (const node of parent.children) {
-    const onlyChild = node.type === 'paragraph'
-      && Array.isArray(node.children)
-      && node.children.length === 1
-      && node.children[0].type === 'text'
-      && typeof node.children[0].value === 'string'
-      ? node.children[0]
-      : null;
+    const onlyChild =
+      node.type === 'paragraph' &&
+      Array.isArray(node.children) &&
+      node.children.length === 1 &&
+      node.children[0].type === 'text' &&
+      typeof node.children[0].value === 'string'
+        ? node.children[0]
+        : null
 
     if (onlyChild && onlyChild.value.includes('\n')) {
-      const groups = [];
-      let buffer = [];
+      const groups = []
+      let buffer = []
       for (const line of onlyChild.value.split('\n')) {
-        const trimmed = line.trim();
+        const trimmed = line.trim()
         if (OPEN_RE.test(trimmed) || CLOSE_RE.test(trimmed)) {
           if (buffer.length) {
-            groups.push(buffer.join('\n'));
-            buffer = [];
+            groups.push(buffer.join('\n'))
+            buffer = []
           }
-          groups.push(trimmed);
+          groups.push(trimmed)
         } else {
-          buffer.push(line);
+          buffer.push(line)
         }
       }
-      if (buffer.length) groups.push(buffer.join('\n'));
+      if (buffer.length) groups.push(buffer.join('\n'))
 
       if (groups.length > 1) {
         for (const value of groups) {
-          if (value.length === 0) continue;
-          out.push({ type: 'paragraph', children: [{ type: 'text', value }] });
+          if (value.length === 0) continue
+          out.push({ type: 'paragraph', children: [{ type: 'text', value }] })
         }
-        continue;
+        continue
       }
     }
 
-    if (Array.isArray(node.children)) splitParagraphLines(node);
-    out.push(node);
+    if (Array.isArray(node.children)) splitParagraphLines(node)
+    out.push(node)
   }
 
-  parent.children = out;
+  parent.children = out
 }
 
 function transformBlocks(parent) {
-  if (!parent || !Array.isArray(parent.children)) return;
-  const arr = parent.children;
-  const out = [];
-  let i = 0;
+  if (!parent || !Array.isArray(parent.children)) return
+  const arr = parent.children
+  const out = []
+  let i = 0
 
   while (i < arr.length) {
-    const node = arr[i];
-    const text = paragraphText(node);
-    const open = text ? text.match(OPEN_RE) : null;
+    const node = arr[i]
+    const text = paragraphText(node)
+    const open = text ? text.match(OPEN_RE) : null
 
     if (open && BLOCK_NAMES.has(open[1])) {
-      const name  = open[1];
-      const props = parseProps(open[2], name);
+      const name = open[1]
+      const props = parseProps(open[2], name)
 
       if (VOID_NAMES.has(name)) {
         out.push({
@@ -184,35 +194,35 @@ function transformBlocks(parent) {
           props,
           children: [],
           data: makeData(name, props),
-        });
-        i++;
-        continue;
+        })
+        i++
+        continue
       }
 
-      let depth = 1;
-      let j = i + 1;
+      let depth = 1
+      let j = i + 1
 
       while (j < arr.length) {
-        const t = paragraphText(arr[j]);
+        const t = paragraphText(arr[j])
         if (t) {
-          const om = t.match(OPEN_RE);
+          const om = t.match(OPEN_RE)
           if (om && BLOCK_NAMES.has(om[1]) && !VOID_NAMES.has(om[1])) {
-            depth++;
+            depth++
           } else if (CLOSE_RE.test(t)) {
-            depth--;
-            if (depth === 0) break;
+            depth--
+            if (depth === 0) break
           }
         }
-        j++;
+        j++
       }
 
       if (j >= arr.length) {
-        i++;
-        continue;
+        i++
+        continue
       }
 
-      const innerParent = { type: 'root', children: arr.slice(i + 1, j) };
-      transformBlocks(innerParent);
+      const innerParent = { type: 'root', children: arr.slice(i + 1, j) }
+      transformBlocks(innerParent)
 
       out.push({
         type: 'shortcode',
@@ -220,76 +230,76 @@ function transformBlocks(parent) {
         props,
         children: innerParent.children,
         data: makeData(name, props),
-      });
+      })
 
-      i = j + 1;
-      continue;
+      i = j + 1
+      continue
     }
 
     if (text && CLOSE_RE.test(text)) {
-      i++;
-      continue;
+      i++
+      continue
     }
 
-    if (Array.isArray(node.children)) transformBlocks(node);
-    out.push(node);
-    i++;
+    if (Array.isArray(node.children)) transformBlocks(node)
+    out.push(node)
+    i++
   }
 
-  parent.children = out;
+  parent.children = out
 }
 
 function transformInlines(node) {
-  if (!node || !Array.isArray(node.children)) return;
+  if (!node || !Array.isArray(node.children)) return
 
   for (let i = 0; i < node.children.length; i++) {
-    const child = node.children[i];
+    const child = node.children[i]
 
     if (child.type === 'text' && typeof child.value === 'string') {
-      const value = child.value;
-      INLINE_RE.lastIndex = 0;
-      const replacements = [];
-      let last = 0;
-      let matched = false;
-      let m;
+      const value = child.value
+      INLINE_RE.lastIndex = 0
+      const replacements = []
+      let last = 0
+      let matched = false
+      let m
 
       while ((m = INLINE_RE.exec(value)) !== null) {
-        const name = m[1];
-        if (!INLINE_NAMES.has(name)) continue;
-        matched = true;
+        const name = m[1]
+        if (!INLINE_NAMES.has(name)) continue
+        matched = true
 
         if (m.index > last) {
-          replacements.push({ type: 'text', value: value.slice(last, m.index) });
+          replacements.push({ type: 'text', value: value.slice(last, m.index) })
         }
 
-        const props = parseProps(m[2], name);
+        const props = parseProps(m[2], name)
         replacements.push({
           type: 'shortcode',
           name,
           props,
           data: makeData(name, props),
-        });
+        })
 
-        last = m.index + m[0].length;
+        last = m.index + m[0].length
       }
 
       if (matched) {
         if (last < value.length) {
-          replacements.push({ type: 'text', value: value.slice(last) });
+          replacements.push({ type: 'text', value: value.slice(last) })
         }
-        node.children.splice(i, 1, ...replacements);
-        i += replacements.length - 1;
+        node.children.splice(i, 1, ...replacements)
+        i += replacements.length - 1
       }
     } else {
-      transformInlines(child);
+      transformInlines(child)
     }
   }
 }
 
 export default function remarkShortcodes() {
   return (tree) => {
-    splitParagraphLines(tree);
-    transformBlocks(tree);
-    transformInlines(tree);
-  };
+    splitParagraphLines(tree)
+    transformBlocks(tree)
+    transformInlines(tree)
+  }
 }

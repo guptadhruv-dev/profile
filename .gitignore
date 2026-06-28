@@ -12,3 +12,4 @@ pnpm-debug.log*
 .ignore
 message.txt
 .vscode/
+.eslintcache

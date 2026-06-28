@@ -1,357 +1,304 @@
-import { useEffect, useState } from 'react';
-import SectionButton from './SectionButton';
-import Divider from './Divider';
-import Links from './Links';
-import ThemeToggle from './ThemeToggle';
-import name from '../assets/name.svg';
+import { useEffect, useState } from 'react'
+import SectionButton from './SectionButton'
+import Divider from './Divider'
+import Links from './Links'
+import ThemeToggle from './ThemeToggle'
+import Icon from './shortcodes/Icon'
+import name from '../assets/name.svg'
+import { M } from '../motion'
 
-const avatarModules = import.meta.glob(
-  '../assets/avatar.{png,jpg,jpeg,webp,svg,gif,avif}',
-  { eager: true, import: 'default' }
-);
-const avatarSrc = Object.values(avatarModules)[0] ?? null;
+const avatarModules = import.meta.glob('../assets/avatar.{png,jpg,jpeg,webp,svg,gif,avif}', {
+  eager: true,
+  import: 'default',
+})
+const avatarSrc = Object.values(avatarModules)[0] ?? null
 
-const M            = 'var(--motion-duration) var(--motion-ease)';
-const MOBILE_QUERY = '(max-width: 767px)';
-const TOP_BTN_SIZE = 32;
-const TOP_GAP      = 20;
-const CONTENT_GAP  = 'clamp(12px, 2vh, 20px)';
-const IDENTITY_MAX_WIDTH = 200;
-const DRAWER_WIDTH = 'min(80vw, 300px)';
+const MOBILE_QUERY = '(max-width: 767px)'
+const SHORT_HEIGHT_QUERY = '(max-height: 38rem)'
+const TOP_GAP = 20
+const DRAWER_WIDTH = 'min(80vw, 300px)'
+const IDENTITY_MEDIA_HEIGHT = 'clamp(7rem, 34vh, 15.5rem)'
 
 function detectMobile() {
-  return typeof window !== 'undefined' && window.matchMedia(MOBILE_QUERY).matches;
+  return typeof window !== 'undefined' && window.matchMedia(MOBILE_QUERY).matches
+}
+
+function detectShortHeight() {
+  return typeof window !== 'undefined' && window.matchMedia(SHORT_HEIGHT_QUERY).matches
 }
 
 function fadeTransition(visible) {
-  return `opacity ${M}, transform ${M}, visibility 0s linear ${visible ? '0s' : 'var(--motion-duration)'}`;
+  return `opacity ${M}, transform ${M}, visibility 0s linear ${visible ? '0s' : 'var(--motion-duration)'}`
 }
 
-export default function Sidebar({ activeSection, onNavClick, sections = [] }) {
-  const [isMobile,  setIsMobile]  = useState(detectMobile);
-  const [collapsed, setCollapsed] = useState(detectMobile);
+function NavList({ sections, activeSection, onNavClick, variant, isMobile }) {
+  const iconOnly = variant === 'rail'
+  return (
+    <>
+      <Divider style={{ flexShrink: 0, width: '100%' }} />
+      <div className="sb-navlist"
+          style={{ padding: '1.0rem 0' }}
+      >
+        {sections.map(({ id, label, vars }) => (
+          <SectionButton
+            key={id}
+            label={label || id}
+            icon={vars?.icon}
+            iconOnly={iconOnly}
+            isActive={activeSection === id}
+            onClick={() => onNavClick(id)}
+            align={iconOnly ? 'center' : isMobile ? 'center' : 'left'}
+          />
+        ))}
+      </div>
+      <Divider style={{ flexShrink: 0, width: '100%' }} />
+    </>
+  )
+}
+
+export default function Sidebar({ activeSection, onNavClick, onLayoutTransition, sections = [] }) {
+  const [isMobile, setIsMobile] = useState(detectMobile)
+  const [isShortHeight, setIsShortHeight] = useState(detectShortHeight)
+  const [collapsed, setCollapsed] = useState(detectMobile)
 
   useEffect(() => {
-    const mq = window.matchMedia(MOBILE_QUERY);
+    const mq = window.matchMedia(MOBILE_QUERY)
     const onChange = (e) => {
-      setIsMobile(e.matches);
-      setCollapsed(e.matches);
-    };
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
+      setIsMobile(e.matches)
+      setCollapsed(e.matches)
+    }
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
 
-  const toggleSidebar = () => setCollapsed((v) => !v);
+  useEffect(() => {
+    const mq = window.matchMedia(SHORT_HEIGHT_QUERY)
+    const onChange = (e) => setIsShortHeight(e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
+  const setCollapsedWithLayoutTransition = (value) => {
+    onLayoutTransition?.()
+    setCollapsed(value)
+  }
+
+  const toggleSidebar = () => {
+    onLayoutTransition?.()
+    setCollapsed((v) => !v)
+  }
 
   const navigate = (id) => {
-    onNavClick(id);
-    if (isMobile && !collapsed) setCollapsed(true);
-  };
+    onNavClick(id)
+    if (isMobile && !collapsed) setCollapsedWithLayoutTransition(true)
+  }
 
-  const showRail        = collapsed && !isMobile;
-  const sidebarWidth    = isMobile
+  const showRail = collapsed && !isMobile
+  const sidebarWidth = isMobile
     ? DRAWER_WIDTH
-    : (collapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)');
-  const morphTransition = `top ${M}, left ${M}, transform ${M}`;
-  const PAD_X           = isMobile ? 22 : (showRail ? 15 : 20);
+    : collapsed
+      ? 'var(--sidebar-collapsed-width)'
+      : 'var(--sidebar-width)'
+  const PAD_X = isMobile ? 22 : showRail ? 15 : 20
 
   return (
     <>
       {isMobile && (
         <button
           type="button"
-          onClick={() => setCollapsed(false)}
+          onClick={() => setCollapsedWithLayoutTransition(false)}
           aria-label="Open menu"
+          className="sb-mobile-open"
           style={{
-            position:       'fixed',
-            top:            14,
-            left:           14,
-            zIndex:         9,
-            width:          40,
-            height:         40,
-            display:        'inline-flex',
-            alignItems:     'center',
-            justifyContent: 'center',
-            border:         'none',
-            borderRadius:   10,
-            cursor:         'pointer',
-            color:          'var(--color-fg-primary)',
-            background:     'color-mix(in srgb, var(--color-bg-secondary) 85%, transparent)',
-            backdropFilter: 'blur(6px)',
-            opacity:        collapsed ? 1 : 0,
-            pointerEvents:  collapsed ? 'auto' : 'none',
-            transition:     `opacity ${M}`,
+            opacity: collapsed ? 1 : 0,
+            pointerEvents: collapsed ? 'auto' : 'none',
           }}
         >
-          <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 24 }}>menu</span>
+          <Icon name="menu" style={{ fontSize: '1.5rem' }} />
         </button>
       )}
 
       {isMobile && (
         <div
           aria-hidden="true"
-          onClick={() => setCollapsed(true)}
+          onClick={() => setCollapsedWithLayoutTransition(true)}
+          className="sb-mobile-backdrop"
           style={{
-            position:      'fixed',
-            inset:         0,
-            zIndex:        9,
-            background:    'rgba(0, 0, 0, 0.5)',
-            opacity:       collapsed ? 0 : 1,
+            opacity: collapsed ? 0 : 1,
             pointerEvents: collapsed ? 'none' : 'auto',
-            transition:    `opacity ${M}`,
           }}
         />
       )}
 
       <aside
+        className="sb-aside"
         style={{
-          width:           sidebarWidth,
-          minWidth:        sidebarWidth,
-          height:          '100vh',
-          position:        isMobile ? 'fixed' : 'sticky',
-          top:             0,
-          left:            0,
-          transform:       isMobile && collapsed ? 'translateX(-100%)' : 'translateX(0)',
-          backgroundColor: 'var(--color-bg-secondary)',
-          display:         'flex',
-          flexDirection:   'column',
-          justifyContent:  'space-evenly',
-          alignItems:      'center',
-          padding:         `45px ${PAD_X}px`,
-          flexShrink:      0,
-          zIndex:          10,
-          overflow:        'hidden',
-          gap:             '25px',
-          transition:      `width ${M}, min-width ${M}, padding ${M}, transform ${M}`,
+          width: sidebarWidth,
+          minWidth: sidebarWidth,
+          position: isMobile ? 'fixed' : 'sticky',
+          transform: isMobile && collapsed ? 'translateX(-100%)' : 'translateX(0)',
+          padding: `45px ${PAD_X}px`,
         }}
       >
-        <div style={{
-          position:   'relative',
-          width:      '100%',
-          height:     showRail ? TOP_BTN_SIZE * 2 + TOP_GAP : TOP_BTN_SIZE,
-          flexShrink: 0,
-          transition: `height ${M}`,
-        }}>
+        <div
+          style={{
+            position: 'relative',
+            width: '100%',
+            height: showRail ? `calc(4rem + ${TOP_GAP}px)` : '2rem',
+            flexShrink: 0,
+            transition: `height ${M}`,
+          }}
+        >
           <button
             type="button"
             onClick={toggleSidebar}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className="sb-toggle-btn hover-fg"
             style={{
-              position:       'absolute',
-              top:            0,
-              left:           showRail ? '50%' : 0,
-              transform:      showRail ? 'translateX(-50%)' : 'translateX(0)',
-              display:        'inline-flex',
-              alignItems:     'center',
-              justifyContent: 'center',
-              width:          TOP_BTN_SIZE,
-              height:         TOP_BTN_SIZE,
-              padding:        0,
-              background:     'transparent',
-              border:         'none',
-              borderRadius:   6,
-              cursor:         'pointer',
-              color:          'var(--color-fg-secondary)',
-              transition:     `${morphTransition}, color ${M}`,
+              left: showRail ? '50%' : 0,
+              transform: showRail ? 'translateX(-50%)' : 'translateX(0)',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-fg-primary)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-fg-secondary)'; }}
           >
             <span style={{ display: 'inline-grid', placeItems: 'center' }}>
-              <span
-                className="material-symbols-outlined"
-                aria-hidden="true"
+              <Icon
+                name="chevron_left"
+                weight={400}
+                className="sb-icon-crossfade"
                 style={{
-                  gridArea:              '1 / 1',
-                  fontSize:              '26px',
-                  lineHeight:            1,
-                  opacity:               showRail ? 0 : 1,
-                  transform:             showRail ? 'rotate(-90deg) scale(0.7)' : 'rotate(0deg) scale(1)',
-                  transition:            `opacity ${M}, transform ${M}`,
-                  fontVariationSettings: `'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24`,
+                  fontSize: '1.625rem',
+                  opacity: showRail ? 0 : 1,
+                  transform: showRail ? 'rotate(-90deg) scale(0.7)' : 'rotate(0deg) scale(1)',
                 }}
-              >
-                chevron_left
-              </span>
-              <span
-                className="material-symbols-outlined"
-                aria-hidden="true"
+              />
+              <Icon
+                name="menu"
+                weight={400}
+                className="sb-icon-crossfade"
                 style={{
-                  gridArea:              '1 / 1',
-                  fontSize:              '24px',
-                  lineHeight:            1,
-                  opacity:               showRail ? 1 : 0,
-                  transform:             showRail ? 'rotate(0deg) scale(1)' : 'rotate(90deg) scale(0.7)',
-                  transition:            `opacity ${M}, transform ${M}`,
-                  fontVariationSettings: `'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24`,
+                  fontSize: '1.5rem',
+                  opacity: showRail ? 1 : 0,
+                  transform: showRail ? 'rotate(0deg) scale(1)' : 'rotate(90deg) scale(0.7)',
                 }}
-              >
-                menu
-              </span>
+              />
             </span>
           </button>
 
-          <div style={{
-            position:   'absolute',
-            top:        showRail ? TOP_BTN_SIZE + TOP_GAP : 0,
-            left:       showRail ? '50%' : '100%',
-            transform:  showRail ? 'translateX(-50%)' : 'translateX(-100%)',
-            transition: morphTransition,
-          }}>
+          <div
+            className="sb-theme-slot"
+            style={{
+              top: showRail ? `calc(2rem + ${TOP_GAP}px)` : 0,
+              left: showRail ? '50%' : '100%',
+              transform: showRail ? 'translateX(-50%)' : 'translateX(-100%)',
+            }}
+          >
             <ThemeToggle />
           </div>
         </div>
 
-        <div style={{
-          position:  'relative',
-          width:     '100%',
-          flex:      1,
-          minHeight: 0,
-        }}>
+        <div className="sb-body-region">
           <div
+            className="sb-panel sb-panel-expanded"
             style={{
-              position:       'absolute',
-              inset:          0,
-              display:        'flex',
-              flexDirection:  'column',
-              justifyContent: 'space-evenly',
-              alignItems:     'center',
-              gap:            CONTENT_GAP,
-              opacity:        showRail ? 0 : 1,
-              transform:      showRail ? 'translateY(-22px) scale(0.94)' : 'translateY(0) scale(1)',
-              visibility:     showRail ? 'hidden' : 'visible',
-              pointerEvents:  showRail ? 'none' : 'auto',
-              overflow:       'hidden',
-              transition:     fadeTransition(!showRail),
+              opacity: showRail ? 0 : 1,
+              transform: showRail ? 'translateY(-22px) scale(0.94)' : 'translateY(0) scale(1)',
+              visibility: showRail ? 'hidden' : 'visible',
+              pointerEvents: showRail ? 'none' : 'auto',
+              transition: fadeTransition(!showRail),
             }}
           >
-            <div
-              style={{
-                width:         '100%',
-                maxWidth:      IDENTITY_MAX_WIDTH,
-                minHeight:     0,
-                flex:          '0 1 auto',
-                display:       'flex',
-                flexDirection: 'column',
-                alignItems:    'center',
-                gap:           CONTENT_GAP,
-              }}
-            >
-              <div style={{
-                width:           '100%',
-                maxWidth:        '150px',
-                aspectRatio:     '1/1',
-                flexShrink:       0,
-                borderRadius:    '5%',
-                overflow:        'hidden',
-                backgroundColor: 'var(--color-fg-primary)',
-                opacity:         avatarSrc ? 1 : 0.15,
-              }}>
-                {avatarSrc ? (
-                  <img
-                    src={avatarSrc}
-                    alt="Dhruv Gupta"
-                    style={{
-                      width:     '100%',
-                      height:    '100%',
-                      objectFit: 'cover',
-                      display:   'block',
-                    }}
-                  />
-                ) : null}
-              </div>
+            {!isShortHeight && (
               <div
-                role="img"
-                aria-label="Dhruv Gupta"
+                className="sb-identity"
                 style={{
-                  width:              '100%',
-                  maxWidth:           '150px',
-                  aspectRatio:        '172 / 96',
-                  backgroundColor:    'var(--color-fg-primary)',
-                  WebkitMaskImage:    `url(${name})`,
-                  maskImage:          `url(${name})`,
-                  WebkitMaskRepeat:   'no-repeat',
-                  maskRepeat:         'no-repeat',
-                  WebkitMaskPosition: 'center',
-                  maskPosition:       'center',
-                  WebkitMaskSize:     'contain',
-                  maskSize:           'contain',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  flexShrink: 1,
+                  height: IDENTITY_MEDIA_HEIGHT,
+                  maxHeight: '100%',
+                  maxWidth: '12.5rem',
+                  minHeight: 0,
+                  gap: 'clamp(0.375rem, 1.25vh, 0.9rem)',
                 }}
-              />
-            </div>
-
-            <Divider style={{ flexShrink: 0, width: '100%' }} />
-
-            <nav
-              style={{
-                display:       'flex',
-                flexDirection: 'column',
-                alignItems:    'stretch',
-                gap:           CONTENT_GAP,
-                width:         '100%',
-                flexShrink:    0,
-              }}
-            >
-              {sections.map(({ id, label }) => (
-                <SectionButton
-                  key={id}
-                  label={label}
-                  isActive={activeSection === id}
-                  onClick={() => navigate(id)}
-                  align={isMobile ? 'center' : 'left'}
+              >
+                <div
+                  className="sb-avatar"
+                  style={{
+                    opacity: avatarSrc ? 1 : 0.15,
+                    flex: '172 1 0',
+                    width: 'auto',
+                    maxWidth: '100%',
+                    minHeight: 0,
+                    justifyContent: 'center',
+                  }}
+                >
+                  {avatarSrc ? (
+                    <img
+                      src={avatarSrc}
+                      alt="Dhruv Gupta"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                      }}
+                    />
+                  ) : null}
+                </div>
+                <div
+                  role="img"
+                  aria-label="Dhruv Gupta"
+                  className="sb-name"
+                  style={{
+                    '--name-url': `url(${name})`,
+                    flex: '96 1 0',
+                    width: 'auto',
+                    maxWidth: '100%',
+                    minHeight: 0,
+                  }}
                 />
-              ))}
-            </nav>
+              </div>
+            )}
 
-            <Divider style={{ flexShrink: 0, width: '100%' }} />
+            <nav className="sb-nav-expanded">
+              <NavList
+                sections={sections}
+                activeSection={activeSection}
+                onNavClick={navigate}
+                variant="expanded"
+                isMobile={isMobile}
+              />
+            </nav>
           </div>
 
           <nav
+            className="sb-panel sb-panel-rail"
             style={{
-              position:       'absolute',
-              inset:          0,
-              display:        'flex',
-              flexDirection:  'column',
-              alignItems:     'center',
-              justifyContent: 'center',
-              gap:            CONTENT_GAP,
-              width:          '100%',
-              opacity:        showRail ? 1 : 0,
-              transform:      showRail ? 'translateY(0) scale(1)' : 'translateY(22px) scale(0.94)',
-              visibility:     showRail ? 'visible' : 'hidden',
-              pointerEvents:  showRail ? 'auto' : 'none',
-              overflow:       'hidden',
-              transition:     fadeTransition(showRail),
+              opacity: showRail ? 1 : 0,
+              transform: showRail ? 'translateY(0) scale(1)' : 'translateY(22px) scale(0.94)',
+              visibility: showRail ? 'visible' : 'hidden',
+              pointerEvents: showRail ? 'auto' : 'none',
+              transition: fadeTransition(showRail),
             }}
           >
-            <Divider style={{ flexShrink: 0, width: '100%' }} />
-            <div style={{
-              display:        'flex',
-              flexDirection:  'column',
-              alignItems:     'center',
-              justifyContent: 'center',
-              gap:            CONTENT_GAP,
-              width:          '100%',
-              minHeight:      0,
-              flex:           '0 1 auto',
-            }}>
-              {sections.map(({ id, label }) => (
-                <SectionButton
-                  key={id}
-                  label={(label || id).charAt(0).toUpperCase()}
-                  isActive={activeSection === id}
-                  onClick={() => navigate(id)}
-                  align="center"
-                />
-              ))}
-            </div>
-            <Divider style={{ flexShrink: 0, width: '100%' }} />
+            <NavList
+              sections={sections}
+              activeSection={activeSection}
+              onNavClick={navigate}
+              variant="rail"
+              isMobile={isMobile}
+            />
           </nav>
         </div>
 
-        <Links vertical={showRail} />
+        <div
+          className="sb-links-slot"
+          style={{
+            height: showRail ? 'calc(5.5rem + 30px)' : '1.375rem',
+          }}
+        >
+          <Links vertical={showRail} />
+        </div>
       </aside>
     </>
-  );
+  )
 }

@@ -1,58 +1,37 @@
-import { readProps } from './props';
-
-const COLOR_MAP = {
-  primary:   'var(--color-fg-primary)',
-  secondary: 'var(--color-fg-secondary)',
-};
-
-const GRAD_MAP = {
-  low:    -25,
-  normal:   0,
-  high:   200,
-};
+import { readProps, toIconName } from './props'
 
 function toNumber(value, fallback) {
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-  if (typeof value === 'string' && /^-?\d+(?:\.\d+)?$/.test(value)) return Number(value);
-  return fallback;
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  if (typeof value === 'string' && /^-?\d+(?:\.\d+)?$/.test(value)) return Number(value)
+  return fallback
 }
 
-export default function Icon({ node, name: directName }) {
-  const { name: nodeName, size, weight, color, fill, grad, opsz, gap } = node ? readProps(node) : {};
-  const name = nodeName ?? directName;
+export default function Icon({ node, name, size, weight, fill, className, style }) {
+  const props = node ? readProps(node) : { name, size, weight, fill }
+  const iconName = toIconName(props.name)
+  if (!iconName) return null
 
-  if (typeof name !== 'string' || name.length === 0) return null;
-  const iconName = name.trim().toLowerCase().replace(/\s+/g, '_');
-
-  const explicitSize = size !== undefined && size !== null;
-  const fontSize     = explicitSize ? toNumber(size, 28) : null;
-  const weightVal    = weight ? toNumber(size, 200) : 200;
-  const fillVal      = fill === true || fill === 1 || fill === 'true' || fill === '1' ? 1 : 0;
-  const gradVal      = typeof grad === 'string' && grad in GRAD_MAP
-    ? GRAD_MAP[grad]
-    : toNumber(grad, 0);
-  const opszVal      = toNumber(opsz, fontSize != null ? Math.min(48, Math.max(20, fontSize)) : 24);
-
-  const resolvedColor = typeof color === 'string'
-    ? (COLOR_MAP[color] ?? color)
-    : 'currentColor';
+  const fontSize =
+    props.size == null
+      ? '1.5em'
+      : typeof props.size === 'number'
+        ? `${props.size}px`
+        : String(props.size)
+  const weightVal = toNumber(props.weight, 200)
+  const fillVal = props.fill === true || props.fill === 1 ? 1 : 0
 
   return (
     <span
-      className="material-symbols-outlined"
+      className={`material-symbols-outlined ${className ?? ''}`.trim()}
       aria-hidden="true"
       style={{
-        fontSize:              fontSize != null ? `${fontSize}px` : '1.6em',
-        lineHeight:            '1.0em',
-        paddingBottom:         '0.2em',
-        display:               'inline-block',
-        verticalAlign:         'middle',
-        color:                 resolvedColor,
-        marginRight:           `${toNumber(gap, 6)}px`,
-        fontVariationSettings: `'FILL' ${fillVal}, 'wght' ${weightVal}, 'GRAD' ${gradVal}, 'opsz' ${opszVal}`,
+        fontSize,
+        verticalAlign: 'middle',
+        fontVariationSettings: `'FILL' ${fillVal}, 'wght' ${weightVal}`,
+        ...style,
       }}
     >
       {iconName}
     </span>
-  );
+  )
 }

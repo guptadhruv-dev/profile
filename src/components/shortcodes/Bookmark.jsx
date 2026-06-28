@@ -1,19 +1,23 @@
-import { readProps, sizeStyle } from './props';
+import { readProps, sizeStyle } from './props'
+import { externalLinkProps } from '../../shared'
 
 export default function Bookmark({ node }) {
-  const { href, title, description, image, width, align } = readProps(node);
-  if (typeof href !== 'string' || href.length === 0) return null;
+  const { href, title, description, image, width, align } = readProps(node)
+  if (typeof href !== 'string' || href.length === 0) return null
 
-  let host = href;
-  try { host = new URL(href).hostname.replace(/^www\./, ''); } catch { host = href; }
-  const external = href.startsWith('http');
+  let host = href
+  try {
+    host = new URL(href).hostname.replace(/^www\./, '')
+  } catch {
+    host = href
+  }
 
   return (
     <a
       className="sc-bookmark"
       style={sizeStyle(width, align)}
       href={href}
-      {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}
+      {...externalLinkProps(href)}
     >
       <div className="sc-bookmark-text">
         {title && <div className="sc-bookmark-title">{title}</div>}
@@ -26,5 +30,5 @@ export default function Bookmark({ node }) {
         </div>
       )}
     </a>
-  );
+  )
 }

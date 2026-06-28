@@ -1,0 +1,6 @@
+dist
+node_modules
+.ignore
+package-lock.json
+*.svg
+*.png

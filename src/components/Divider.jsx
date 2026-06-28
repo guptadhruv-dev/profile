@@ -9,5 +9,5 @@ export default function Divider({ style }) {
         ...style,
       }}
     />
-  );
+  )
 }
