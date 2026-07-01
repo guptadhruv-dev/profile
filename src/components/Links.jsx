@@ -1,13 +1,13 @@
 import { motion } from 'framer-motion'
 import { transition, M } from '../motion'
-import { externalLinkProps } from '../shared'
+import { externalLinkProps, proxyFileUrl } from '../shared'
 import Icon from './shortcodes/Icon'
 
 const links = [
   { icon: 'code', href: 'https://github.com/guptadhruv-dev', label: 'GitHub' },
   { icon: 'work', href: 'https://www.linkedin.com/in/dhruv-g-1343a5317', label: 'LinkedIn' },
   { icon: 'mail', href: 'mailto:connect@guptadhruv.dev', label: 'Email' },
-  { icon: 'download', href: '/DhruvGupta-Resume.pdf', label: 'Resume' },
+  { icon: 'download', href: proxyFileUrl('data', '/Documents/Resume.pdf'), label: 'Resume' },
 ]
 
 const LINK_SIZE = '1.25rem'

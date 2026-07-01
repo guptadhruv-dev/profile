@@ -6,12 +6,9 @@ import ThemeToggle from './ThemeToggle'
 import Icon from './shortcodes/Icon'
 import name from '../assets/name.svg'
 import { M } from '../motion'
+import { proxyProtectedUrl } from '../shared'
 
-const avatarModules = import.meta.glob('../assets/avatar.{png,jpg,jpeg,webp,svg,gif,avif}', {
-  eager: true,
-  import: 'default',
-})
-const avatarSrc = Object.values(avatarModules)[0] ?? null
+const avatarSrc = proxyProtectedUrl('https://data.guptadhruv.dev/Media/Profile.png')
 
 const MOBILE_QUERY = '(max-width: 767px)'
 const SHORT_HEIGHT_QUERY = '(max-height: 38rem)'

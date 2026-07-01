@@ -1,6 +1,6 @@
 import { readProps, toIconName } from './props'
 import Icon from './Icon'
-import { externalLinkProps } from '../../shared'
+import { externalLinkProps, proxyProtectedUrl } from '../../shared'
 
 export default function Card({ node, children }) {
   const { title, icon, href } = readProps(node)
@@ -8,7 +8,8 @@ export default function Card({ node, children }) {
 
   const isLink = typeof href === 'string' && href.length > 0
   const Tag = isLink ? 'a' : 'div'
-  const linkProps = isLink ? { href, ...externalLinkProps(href) } : {}
+  const proxiedHref = isLink ? proxyProtectedUrl(href) : href
+  const linkProps = isLink ? { href: proxiedHref, ...externalLinkProps(proxiedHref) } : {}
 
   return (
     <Tag className="sc-card" style={isLink ? { textDecoration: 'none' } : undefined} {...linkProps}>

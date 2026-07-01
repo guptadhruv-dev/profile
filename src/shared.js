@@ -3,6 +3,10 @@ import { useEffect, useState } from 'react'
 export const THEME_STORAGE_KEY = 'theme-mode'
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
+const PROTECTED_HOST_TARGETS = {
+  'data.guptadhruv.dev': 'data',
+  'content.guptadhruv.dev': 'content',
+}
 
 export function prefersReducedMotion() {
   return (
@@ -27,11 +31,40 @@ export function usePrefersReducedMotion() {
 
 export function externalLinkProps(href) {
   if (typeof href !== 'string' || href.length === 0) return {}
-  if (href.startsWith('http') || href.startsWith('mailto:') || href.endsWith('.pdf')) {
-    const external = href.startsWith('http') || href.endsWith('.pdf')
+  const pdf = isPdfHref(href)
+  if (href.startsWith('http') || href.startsWith('mailto:') || pdf) {
+    const external = href.startsWith('http') || pdf
     return external ? { target: '_blank', rel: 'noreferrer' } : {}
   }
   return {}
+}
+
+export function proxyFileUrl(target, path) {
+  const cleanPath = typeof path === 'string' && path.startsWith('/') ? path : `/${path ?? ''}`
+  return `/api/proxy?target=${encodeURIComponent(target)}&path=${encodeURIComponent(cleanPath)}`
+}
+
+export function proxyProtectedUrl(value) {
+  if (typeof value !== 'string' || value.length === 0) return value
+  try {
+    const url = new URL(value)
+    const target = PROTECTED_HOST_TARGETS[url.hostname]
+    if (!target) return value
+    return proxyFileUrl(target, `${url.pathname}${url.search}`)
+  } catch {
+    return value
+  }
+}
+
+function isPdfHref(href) {
+  if (href.toLowerCase().endsWith('.pdf')) return true
+  try {
+    const url = new URL(href, 'https://proxy.local')
+    const path = url.searchParams.get('path')
+    return typeof path === 'string' && path.toLowerCase().endsWith('.pdf')
+  } catch {
+    return false
+  }
 }
 
 export function getInitialTheme() {

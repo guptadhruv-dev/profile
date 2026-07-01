@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
+import { proxyFileUrl } from '../shared'
 
-const BASE_URL = import.meta.env.DEV ? '.ignore/content/' : 'https://data.guptadhruv.dev'
+function contentUrl(filename) {
+  return import.meta.env.DEV ? `.ignore/content/${filename}` : proxyFileUrl('content', `/${filename}`)
+}
 
 function parseFrontmatter(raw) {
   if (!raw.startsWith('---')) return { meta: {}, content: raw }
@@ -36,7 +39,7 @@ export function useContent() {
     const controller = new AbortController()
     let ignore = false
 
-    fetch(`${BASE_URL}/index.json`, { signal: controller.signal })
+    fetch(contentUrl('index.json'), { signal: controller.signal })
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch index (' + res.status + ')')
         return res.json()
@@ -44,7 +47,7 @@ export function useContent() {
       .then((filenames) =>
         Promise.all(
           filenames.map((filename) =>
-            fetch(`${BASE_URL}/${filename}`, { signal: controller.signal })
+            fetch(contentUrl(filename), { signal: controller.signal })
               .then((res) => {
                 if (!res.ok) throw new Error('Failed to fetch ' + filename)
                 return res.text()

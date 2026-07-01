@@ -1,4 +1,5 @@
 import { readProps, sizeStyle } from './props'
+import { proxyProtectedUrl } from '../../shared'
 
 export default function Embed({ node }) {
   const { type, id, src, title, width, align } = readProps(node)
@@ -7,7 +8,7 @@ export default function Embed({ node }) {
   if (type === 'youtube' && typeof id === 'string' && id.length) {
     url = `https://www.youtube-nocookie.com/embed/${id}`
   } else if (typeof src === 'string' && src.length) {
-    url = src
+    url = proxyProtectedUrl(src)
   }
   if (!url) return null
 

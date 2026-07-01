@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
 import { readProps, sizeStyle } from './props'
+import { proxyProtectedUrl } from '../../shared'
 import Icon from './Icon'
 
 function parseImages(value) {
@@ -45,7 +46,7 @@ export default function Gallery({ node }) {
         <div className="sc-gallery-container">
           {slides.map((img, i) => (
             <div className="sc-gallery-slide" key={i}>
-              <img src={img.src} alt={img.alt || ''} loading="lazy" />
+              <img src={proxyProtectedUrl(img.src)} alt={img.alt || ''} loading="lazy" />
             </div>
           ))}
         </div>

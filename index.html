@@ -7,13 +7,13 @@
     <script>
       ;(function () {
         try {
-          var saved = localStorage.getItem('theme-mode')
+          var theme_mode = localStorage.getItem('theme_mode')
           var mode =
-            saved === 'light' || saved === 'dark'
-              ? saved
-              : window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches
+            theme_mode === 'light' || theme_mode === 'dark'
+              ? theme_mode
+              : (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches
                 ? 'light'
-                : 'dark'
+                : 'dark')
           document.documentElement.classList.add(mode)
         } catch (e) {
           document.documentElement.classList.add('dark')

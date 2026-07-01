@@ -1,9 +1,11 @@
 import { readProps, sizeStyle } from './props'
-import { externalLinkProps } from '../../shared'
+import { externalLinkProps, proxyProtectedUrl } from '../../shared'
 
 export default function Bookmark({ node }) {
   const { href, title, description, image, width, align } = readProps(node)
   if (typeof href !== 'string' || href.length === 0) return null
+  const proxiedHref = proxyProtectedUrl(href)
+  const proxiedImage = proxyProtectedUrl(image)
 
   let host = href
   try {
@@ -16,8 +18,8 @@ export default function Bookmark({ node }) {
     <a
       className="sc-bookmark"
       style={sizeStyle(width, align)}
-      href={href}
-      {...externalLinkProps(href)}
+      href={proxiedHref}
+      {...externalLinkProps(proxiedHref)}
     >
       <div className="sc-bookmark-text">
         {title && <div className="sc-bookmark-title">{title}</div>}
@@ -26,7 +28,7 @@ export default function Bookmark({ node }) {
       </div>
       {image && (
         <div className="sc-bookmark-image">
-          <img src={image} alt="" loading="lazy" />
+          <img src={proxiedImage} alt="" loading="lazy" />
         </div>
       )}
     </a>

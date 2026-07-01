@@ -74,7 +74,11 @@ body {
   padding: 0.5em 0;
 }
 .prose :is(h1, h2, h3, h4, h5, h6) {
-  line-height: 1.5em;
+  line-height: 2.25rem;
+  display: inline-flex;
+  align-items: center; 
+  gap: 0.45rem;
+  width: 100%;
 }
 
 .prose h1 {
