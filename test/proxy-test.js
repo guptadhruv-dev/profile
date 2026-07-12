@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import proxyHandler, { createUpstreamUrl } from '../api/proxy'
 
@@ -10,6 +11,19 @@ beforeEach(() => {
 afterEach(() => {
   process.env.key = originalProxyApiKey
   vi.restoreAllMocks()
+})
+
+describe('proxy runtime', () => {
+  it('loads through native Node module resolution', () => {
+    const importResult = spawnSync(
+      process.execPath,
+      ['--input-type=module', '--eval', "import('./api/proxy.js')"],
+      { cwd: process.cwd(), encoding: 'utf8' },
+    )
+
+    expect(importResult.stderr).toBe('')
+    expect(importResult.status).toBe(0)
+  })
 })
 
 describe('proxy path validation', () => {

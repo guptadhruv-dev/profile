@@ -1,5 +1,5 @@
-import { proxyTargets } from '../shared/proxy-targets'
-import { parseProxyPath } from '../shared/proxy-path'
+import { proxyTargets } from '../shared/proxy-targets.js'
+import { parseProxyPath } from '../shared/proxy-path.js'
 
 const forwardedRequestHeaders = [
   'accept',
