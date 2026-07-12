@@ -1,27 +1,37 @@
-import Toggle from './Toggle'
-import Icon from './Icon'
-import Callout from './Callout'
-import Badge from './Badge'
-import Columns from './Columns'
-import Column from './Column'
-import Card from './Card'
-import Gallery from './Gallery'
-import Embed from './Embed'
-import Bookmark from './Bookmark'
-import Ref from './Ref'
-import Anchor from './Anchor'
+import Toggle from './toggle-shortcode'
+import Icon from './icon-shortcode'
+import Callout from './callout-shortcode'
+import Badge from './badge-shortcode'
+import Columns from './columns-shortcode'
+import Column from './column-shortcode'
+import Card from './card-shortcode'
+import Gallery from './gallery-shortcode'
+import Embed from './embed-shortcode'
+import Bookmark from './bookmark-shortcode'
+import Ref from './reference'
+import Anchor from './anchor-shortcode'
+import Space from './space-shortcode'
 
-export const shortcodeComponents = {
-  'shortcode-toggle': Toggle,
-  'shortcode-icon': Icon,
-  'shortcode-callout': Callout,
-  'shortcode-badge': Badge,
-  'shortcode-columns': Columns,
-  'shortcode-col': Column,
-  'shortcode-card': Card,
-  'shortcode-gallery': Gallery,
-  'shortcode-embed': Embed,
-  'shortcode-bookmark': Bookmark,
-  'shortcode-ref': Ref,
-  'shortcode-anchor': Anchor,
-}
+const shortcodeRenderers = Object.freeze({
+  toggle: Toggle,
+  icon: Icon,
+  callout: Callout,
+  badge: Badge,
+  columns: Columns,
+  col: Column,
+  card: Card,
+  gallery: Gallery,
+  embed: Embed,
+  bookmark: Bookmark,
+  ref: Ref,
+  anchor: Anchor,
+  space: Space,
+})
+
+export const shortcodeNames = new Set(Object.keys(shortcodeRenderers))
+export const shortcodeComponents = Object.fromEntries(
+  Object.entries(shortcodeRenderers).map(([shortcodeName, renderer]) => [
+    `shortcode-${shortcodeName}`,
+    renderer,
+  ]),
+)

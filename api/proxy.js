@@ -1,11 +1,14 @@
-const TARGETS = {
-  data: 'https://data.guptadhruv.dev',
-  content: 'https://content.guptadhruv.dev',
-}
+import { proxyTargets } from '../shared/proxy-targets'
+import { parseProxyPath } from '../shared/proxy-path'
 
-const FORWARD_HEADERS = ['accept', 'range', 'if-none-match', 'if-modified-since', 'if-range']
-
-const RESPONSE_HEADERS = [
+const forwardedRequestHeaders = [
+  'accept',
+  'range',
+  'if-none-match',
+  'if-modified-since',
+  'if-range',
+]
+const forwardedResponseHeaders = [
   'accept-ranges',
   'cache-control',
   'content-disposition',
@@ -15,71 +18,83 @@ const RESPONSE_HEADERS = [
   'etag',
   'last-modified',
 ]
+const upstreamTimeoutMilliseconds = 10000
 
-function text(message, status) {
-  return new Response(message, { status, headers: { 'content-type': 'text/plain; charset=utf-8' } })
+function textResponse(message, status) {
+  return new Response(message, {
+    status,
+    headers: {
+      'content-type': 'text/plain; charset=utf-8',
+      'x-content-type-options': 'nosniff',
+    },
+  })
 }
 
-function upstreamUrl(origin, rawPath) {
-  if (!rawPath || rawPath.includes('\0')) return null
-  const trimmed = rawPath.trim()
-  if (!trimmed || trimmed.startsWith('//') || /^[a-zA-Z][a-zA-Z\d+.-]*:/.test(trimmed)) return null
+export function createUpstreamUrl(origin, rawPath) {
+  const parsedPath = parseProxyPath(rawPath)
+  if (!parsedPath) return null
 
-  const queryStart = trimmed.indexOf('?')
-  const pathPart = queryStart === -1 ? trimmed : trimmed.slice(0, queryStart)
-  const queryPart = queryStart === -1 ? '' : trimmed.slice(queryStart)
-  const parts = pathPart.split('/').filter(Boolean)
-
-  if (parts.some((part) => part === '..')) return null
-
-  const url = new URL(origin)
-  url.pathname = '/' + parts.join('/')
-  url.search = queryPart
-  return url
+  const upstreamUrl = new URL(origin)
+  upstreamUrl.pathname = `/${parsedPath.pathSegments.join('/')}`
+  upstreamUrl.search = parsedPath.search
+  return upstreamUrl
 }
 
 export default {
   async fetch(request) {
     if (request.method !== 'GET' && request.method !== 'HEAD') {
-      return text('Method not allowed', 405)
+      return textResponse('Method not allowed', 405)
     }
 
-    const secret = process.env.key
-    if (!secret) return text('Missing proxy key', 500)
+    const proxyApiKey = process.env.key
+    if (!proxyApiKey) return textResponse('Missing proxy key', 500)
 
-    const url = new URL(request.url)
-    const target = url.searchParams.get('target')
-    const origin = TARGETS[target]
-    if (!origin) return text('Invalid target', 400)
+    const requestUrl = new URL(request.url)
+    const targetName = requestUrl.searchParams.get('target')
+    const targetOrigin = Object.hasOwn(proxyTargets, targetName) ? proxyTargets[targetName] : null
+    if (!targetOrigin) return textResponse('Invalid target', 400)
 
-    const upstream = upstreamUrl(origin, url.searchParams.get('path'))
-    if (!upstream) return text('Invalid path', 400)
+    const upstreamUrl = createUpstreamUrl(targetOrigin, requestUrl.searchParams.get('path'))
+    if (!upstreamUrl) return textResponse('Invalid path', 400)
 
-    const headers = new Headers({ key: secret })
-    for (const name of FORWARD_HEADERS) {
-      const value = request.headers.get(name)
-      if (value) headers.set(name, value)
+    const upstreamHeaders = new Headers({ key: proxyApiKey })
+    for (const headerName of forwardedRequestHeaders) {
+      const headerValue = request.headers.get(headerName)
+      if (headerValue) upstreamHeaders.set(headerName, headerValue)
     }
 
-    let response
+    const abortController = new AbortController()
+    let didTimeout = false
+    const timeout = setTimeout(() => {
+      didTimeout = true
+      abortController.abort()
+    }, upstreamTimeoutMilliseconds)
+    const abortUpstreamRequest = () => abortController.abort()
+    request.signal.addEventListener('abort', abortUpstreamRequest, { once: true })
+
+    let upstreamResponse
     try {
-      response = await fetch(upstream, {
+      upstreamResponse = await fetch(upstreamUrl, {
         method: request.method,
-        headers,
+        headers: upstreamHeaders,
+        signal: abortController.signal,
       })
     } catch {
-      return text('Bad gateway', 502)
+      return textResponse(didTimeout ? 'Gateway timeout' : 'Bad gateway', didTimeout ? 504 : 502)
+    } finally {
+      clearTimeout(timeout)
+      request.signal.removeEventListener('abort', abortUpstreamRequest)
     }
 
-    const responseHeaders = new Headers()
-    for (const name of RESPONSE_HEADERS) {
-      const value = response.headers.get(name)
-      if (value) responseHeaders.set(name, value)
+    const responseHeaders = new Headers({ 'x-content-type-options': 'nosniff' })
+    for (const headerName of forwardedResponseHeaders) {
+      const headerValue = upstreamResponse.headers.get(headerName)
+      if (headerValue) responseHeaders.set(headerName, headerValue)
     }
 
-    return new Response(request.method === 'HEAD' ? null : response.body, {
-      status: response.status,
-      statusText: response.statusText,
+    return new Response(request.method === 'HEAD' ? null : upstreamResponse.body, {
+      status: upstreamResponse.status,
+      statusText: upstreamResponse.statusText,
       headers: responseHeaders,
     })
   },
