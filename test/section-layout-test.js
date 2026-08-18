@@ -9,18 +9,31 @@ function readRuleBodies(selectorPattern) {
   )
 }
 
-describe('section scrolling layout', () => {
-  it('snaps at content-sized section boundaries without dead viewport space', () => {
-    const scrollContainerRules = readRuleBodies('\\.content-scroll')
-    const sectionRule = readRuleBodies('\\.section-pane')[0]
-    const sectionBoundaryRule = readRuleBodies('\\.section-pane \\+ \\.section-pane')[0]
+function hasDeclaration(ruleBodies, declaration) {
+  return ruleBodies.some((ruleBody) => ruleBody.includes(declaration))
+}
 
-    expect(
-      scrollContainerRules.some((ruleBody) => ruleBody.includes('scroll-snap-type: y mandatory')),
-    ).toBe(true)
-    expect(sectionRule).toContain('scroll-snap-align: start')
-    expect(sectionRule).toContain('scroll-snap-stop: always')
-    expect(sectionRule).not.toContain('min-height')
-    expect(sectionBoundaryRule).toContain('border-block-start')
+describe('section scrolling layout', () => {
+  it('scrolls freely without snapping', () => {
+    expect(stylesheet).not.toContain('scroll-snap-type')
+    expect(stylesheet).not.toContain('scroll-snap-align')
+    expect(stylesheet).not.toContain('scroll-snap-stop')
+  })
+
+  it('keeps smooth scrolling for navigation and honours reduced motion', () => {
+    const scrollContainerRules = readRuleBodies('\\.content-scroll')
+
+    expect(hasDeclaration(scrollContainerRules, 'scroll-behavior: smooth')).toBe(true)
+    expect(hasDeclaration(scrollContainerRules, 'scroll-behavior: auto')).toBe(true)
+    expect(hasDeclaration(scrollContainerRules, 'height: 100dvh')).toBe(true)
+  })
+
+  it('separates sections without trailing a border after the last one', () => {
+    const sectionRules = readRuleBodies('(?<![+\\w-])\\.section-pane')
+    const sectionBoundaryRules = readRuleBodies('\\.section-pane:not\\(:last-child\\)')
+
+    expect(hasDeclaration(sectionRules, 'min-height')).toBe(false)
+    expect(hasDeclaration(sectionRules, 'border-block')).toBe(false)
+    expect(hasDeclaration(sectionBoundaryRules, 'border-block-end')).toBe(true)
   })
 })

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, memo, Suspense, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkDirective from 'remark-directive'
@@ -55,7 +55,7 @@ const markdownComponents = {
   },
 }
 
-export default function Section({ id, vars = {}, content }) {
+function Section({ id, vars = {}, content }) {
   const markdown = useMemo(
     () =>
       String(content ?? '').replace(variablePattern, (matchedVariable, variableName) => {
@@ -80,3 +80,5 @@ export default function Section({ id, vars = {}, content }) {
     </section>
   )
 }
+
+export default memo(Section)

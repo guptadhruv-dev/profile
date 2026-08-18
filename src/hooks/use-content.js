@@ -16,7 +16,6 @@ async function fetchText(filename, signal) {
 export function useContent() {
   const [sections, setSections] = useState([])
   const [status, setStatus] = useState('loading')
-  const [error, setError] = useState(null)
   const [loadVersion, setLoadVersion] = useState(0)
 
   const reload = useCallback(() => {
@@ -28,7 +27,6 @@ export function useContent() {
 
     async function load() {
       setStatus('loading')
-      setError(null)
       try {
         const manifest = await fetchText('index.json', controller.signal)
         const filenames = parseContentManifest(manifest)
@@ -51,7 +49,6 @@ export function useContent() {
       } catch (loadError) {
         if (loadError.name === 'AbortError') return
         console.error(loadError)
-        setError(loadError)
         setSections([])
         setStatus('error')
       }
@@ -64,5 +61,5 @@ export function useContent() {
     }
   }, [loadVersion])
 
-  return { sections, status, error, reload }
+  return { sections, status, reload }
 }

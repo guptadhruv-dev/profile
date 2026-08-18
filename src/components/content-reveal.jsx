@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { usePrefersReducedMotion } from '../lib/media'
 import { joinClassNames } from '../lib/class-names'
 
-const revealIntersectionThreshold = 0.2
+const revealIntersectionThreshold = 0
+const revealRootMargin = '0px 0px -15% 0px'
 
 export default function Reveal({ children, className }) {
   const prefersReducedMotion = usePrefersReducedMotion()
@@ -24,7 +25,7 @@ export default function Reveal({ children, className }) {
         setIsVisible(true)
         observer.disconnect()
       },
-      { threshold: revealIntersectionThreshold },
+      { rootMargin: revealRootMargin, threshold: revealIntersectionThreshold },
     )
     observer.observe(element)
     return () => observer.disconnect()

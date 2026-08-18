@@ -81,20 +81,21 @@ html {
 .content-scroll {
   flex: 1;
   height: 100vh;
+  height: 100dvh;
   overflow-y: auto;
   background-color: var(--color-bg-primary);
   scroll-behavior: smooth;
   overscroll-behavior-y: contain;
-  scroll-snap-type: y mandatory;
+  padding-block-start: var(--space-md);
+  padding-block-end: 30vh;
 }
 
 .section-pane {
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
+  padding-block: var(--space-lg);
 }
 
-.section-pane + .section-pane {
-  border-block-start: 1px solid color-mix(in srgb, var(--color-fg-secondary) 25%, transparent);
+.section-pane:not(:last-child) {
+  border-block-end: 1px solid color-mix(in srgb, var(--color-fg-secondary) 25%, transparent);
 }
 
 body {
@@ -108,6 +109,7 @@ body {
 .app-shell {
   display: flex;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background-color: var(--color-bg-primary);
 }
@@ -177,7 +179,6 @@ body {
 .prose h3 {
   color: var(--color-fg-primary);
   font-weight: 500;
-  font-size: 1.25em;
   font-size: 1.4em;
 }
 
@@ -364,16 +365,14 @@ body {
   text-align: start;
 }
 
-.section-body {
-  padding: clamp(1.25rem, 3vw, 3.75rem) clamp(1.25rem, 3vw, 3.75rem);
-}
 @media (max-width: 48rem) {
   :root {
     --is-mobile: 1;
   }
-  .section-body {
-    padding: calc(var(--space-lg) + var(--space-sm)) 1.25em 0;
-  }
+}
+
+.section-body {
+  padding: 0 var(--space-md);
 }
 
 .sc-columns {
@@ -502,6 +501,7 @@ body {
 .sc-toggle-clip {
   min-height: 0;
   overflow: hidden;
+  contain: layout paint;
 }
 .sc-toggle-body {
   padding-top: var(--space-sm);

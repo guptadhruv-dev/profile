@@ -41,7 +41,7 @@ export function readProps(node) {
   }
 }
 
-export function isSafeCssLength(value) {
+function isSafeCssLength(value) {
   if (typeof value === 'number') return Number.isFinite(value)
   return typeof value === 'string' && cssLengthPattern.test(value.trim())
 }

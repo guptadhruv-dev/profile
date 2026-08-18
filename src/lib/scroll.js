@@ -19,20 +19,15 @@ export function scrollElementIntoView(scroller, target, options = {}, onComplete
 
   scrollCleanupByContainer.get(scroller)?.()
 
-  scroller.style.scrollSnapType = 'none'
   target.scrollIntoView({ behavior: 'smooth', ...options })
 
   let fallbackTimer
   let isComplete = false
-  const restoreScrollSnap = () => {
-    scroller.style.scrollSnapType = ''
-  }
   const completeScroll = () => {
     if (isComplete) return
     isComplete = true
     clearTimeout(fallbackTimer)
     scroller.removeEventListener('scrollend', completeScroll)
-    restoreScrollSnap()
     onComplete?.()
   }
   fallbackTimer = setTimeout(completeScroll, smoothScrollTimeoutMilliseconds)
@@ -41,7 +36,6 @@ export function scrollElementIntoView(scroller, target, options = {}, onComplete
   const cleanup = () => {
     clearTimeout(fallbackTimer)
     scroller.removeEventListener('scrollend', completeScroll)
-    restoreScrollSnap()
   }
   scrollCleanupByContainer.set(scroller, cleanup)
   return cleanup
