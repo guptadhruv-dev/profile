@@ -94,6 +94,23 @@ html {
   padding-block: var(--space-lg);
 }
 
+.section-pending {
+  min-block-size: 100dvh;
+  min-block-size: 100svh;
+}
+
+picture {
+  display: contents;
+}
+
+.material-symbols-rounded {
+  visibility: hidden;
+}
+
+.symbols-ready .material-symbols-rounded {
+  visibility: visible;
+}
+
 .section-pane:not(:last-child) {
   border-block-end: 1px solid color-mix(in srgb, var(--color-fg-secondary) 25%, transparent);
 }
@@ -545,6 +562,12 @@ a.sc-card:hover {
   border-radius: 0.5rem;
   aspect-ratio: var(--gallery-aspect, auto);
   height: var(--gallery-height, auto);
+}
+.sc-gallery-pending {
+  border-radius: 0.5rem;
+  aspect-ratio: var(--gallery-aspect, auto);
+  height: var(--gallery-height, auto);
+  min-height: var(--gallery-min-height, clamp(13.75rem, 45vh, 28.75rem));
 }
 .sc-gallery-container {
   display: flex;

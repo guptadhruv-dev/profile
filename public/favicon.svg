@@ -1,0 +1,8 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dhruv Gupta">
+  <rect width="64" height="64" rx="14" fill="#1b1c28" />
+  <path
+    d="M20 16h11.5c9.6 0 16.5 6.4 16.5 16s-6.9 16-16.5 16H20zm8.5 7.5v17h3c5 0 8.3-3.4 8.3-8.5s-3.3-8.5-8.3-8.5z"
+    fill="#c4d1f0"
+  />
+  <path d="M44.5 41.5a3.75 3.75 0 1 1 0 7.5 3.75 3.75 0 0 1 0-7.5z" fill="#c49cf1" />
+</svg>

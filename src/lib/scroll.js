@@ -2,6 +2,7 @@ import { prefersReducedMotion } from './media'
 
 const smoothScrollTimeoutMilliseconds = 1500
 const scrollCleanupByContainer = new WeakMap()
+const missingAnchorListeners = new Set()
 
 export function scrollElementIntoView(scroller, target, options = {}, onComplete) {
   if (!target) {
@@ -41,10 +42,20 @@ export function scrollElementIntoView(scroller, target, options = {}, onComplete
   return cleanup
 }
 
+export function onMissingAnchor(listener) {
+  missingAnchorListeners.add(listener)
+  return () => {
+    missingAnchorListeners.delete(listener)
+  }
+}
+
 export function scrollToAnchor(anchorId) {
   if (!anchorId) return
   const target = document.getElementById(anchorId)
-  if (!target) return
+  if (!target) {
+    for (const listener of missingAnchorListeners) listener(anchorId)
+    return
+  }
 
   scrollElementIntoView(target.closest('.content-scroll'), target, { block: 'center' })
 

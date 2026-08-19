@@ -87,6 +87,42 @@ describe('sidebar navigation', () => {
     expect(openButton).toHaveAttribute('aria-expanded', 'false')
     expect(openButton).toHaveFocus()
   })
+  it('does not request the avatar while the mobile sidebar is collapsed', () => {
+    document.documentElement.style.setProperty('--is-mobile', '1')
+    const { container, rerender } = render(
+      <ThemeProvider>
+        <Sidebar activeSection="overview" onNavClick={vi.fn()} sections={sections} />
+      </ThemeProvider>,
+    )
+
+    expect(container.querySelector('.sb-avatar img')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }))
+    rerender(
+      <ThemeProvider>
+        <Sidebar activeSection="overview" onNavClick={vi.fn()} sections={sections} />
+      </ThemeProvider>,
+    )
+    const openedAvatar = container.querySelector('.sb-avatar img')
+    expect(openedAvatar).toHaveAttribute('loading', 'eager')
+    expect(openedAvatar).toHaveAttribute('width', '915')
+    expect(openedAvatar).toHaveAttribute('height', '1126')
+  })
+
+  it('loads the avatar immediately on desktop where it is visible', () => {
+    const { container } = render(
+      <ThemeProvider>
+        <Sidebar activeSection="overview" onNavClick={vi.fn()} sections={sections} />
+      </ThemeProvider>,
+    )
+
+    expect(container.querySelector('.sb-avatar img')).toHaveAttribute('loading', 'eager')
+    expect(container.querySelector('.sb-avatar img')).toHaveAttribute('fetchpriority', 'high')
+    expect(container.querySelector('.sb-avatar picture source')).toHaveAttribute(
+      'type',
+      'image/avif',
+    )
+  })
 })
 
 describe('profile links', () => {

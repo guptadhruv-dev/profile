@@ -8,3 +8,6 @@ coverage/
 .vscode/
 .eslintcache
 .vercel/
+docs/
+agents/
+AGENTS.md

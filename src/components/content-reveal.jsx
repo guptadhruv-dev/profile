@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
 import { usePrefersReducedMotion } from '../lib/media'
+import { useInView } from '../hooks/use-in-view'
 import { joinClassNames } from '../lib/class-names'
 
 const revealIntersectionThreshold = 0
@@ -7,29 +7,11 @@ const revealRootMargin = '0px 0px -15% 0px'
 
 export default function Reveal({ children, className }) {
   const prefersReducedMotion = usePrefersReducedMotion()
-  const elementRef = useRef(null)
-  const [isVisible, setIsVisible] = useState(false)
-
-  useEffect(() => {
-    if (prefersReducedMotion) return undefined
-    const element = elementRef.current
-    if (!element) return undefined
-    if (typeof IntersectionObserver !== 'function') {
-      setIsVisible(true)
-      return undefined
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return
-        setIsVisible(true)
-        observer.disconnect()
-      },
-      { rootMargin: revealRootMargin, threshold: revealIntersectionThreshold },
-    )
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [prefersReducedMotion])
+  const [elementRef, isVisible] = useInView({
+    rootMargin: revealRootMargin,
+    threshold: revealIntersectionThreshold,
+    enabled: !prefersReducedMotion,
+  })
 
   if (prefersReducedMotion) return <div className={className}>{children}</div>
 

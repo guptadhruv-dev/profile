@@ -9,6 +9,8 @@ const allowedProtocolsByKind = Object.freeze({
 })
 const localUrlBase = 'https://local.invalid'
 const defaultSectionMediaDirectory = 'media/sections'
+const baselineImageExtension = 'webp'
+const preferredImageExtension = 'avif'
 const profileAssetFilenamePattern = /^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?\.[a-z0-9]+$/
 
 function isPdfHref(href) {
@@ -122,4 +124,19 @@ export function proxyProfileAssetUrl(value, defaultDirectory = null) {
 
 export function proxySectionMediaUrl(value) {
   return proxyProfileAssetUrl(value, defaultSectionMediaDirectory)
+}
+
+function preferredVariantPath(value) {
+  if (typeof value !== 'string') return null
+  const trimmedValue = value.trim()
+  if (!trimmedValue.toLowerCase().endsWith(`.${baselineImageExtension}`)) return null
+  return `${trimmedValue.slice(0, -baselineImageExtension.length)}${preferredImageExtension}`
+}
+
+export function proxyProfileAssetVariantUrl(value, defaultDirectory = null) {
+  return proxyProfileAssetUrl(preferredVariantPath(value), defaultDirectory)
+}
+
+export function proxySectionMediaVariantUrl(value) {
+  return proxyProfileAssetVariantUrl(value, defaultSectionMediaDirectory)
 }

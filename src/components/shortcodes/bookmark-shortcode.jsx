@@ -1,5 +1,11 @@
 import { readProps, sizeStyle } from './shortcode-props'
-import { externalLinkProps, proxyProtectedUrl, proxySectionMediaUrl } from '../../lib/proxy'
+import {
+  externalLinkProps,
+  proxyProtectedUrl,
+  proxySectionMediaUrl,
+  proxySectionMediaVariantUrl,
+} from '../../lib/proxy'
+import LazyImage from '../lazy-image'
 
 export default function Bookmark({ node }) {
   const { href, title, description, image, width, align } = readProps(node)
@@ -28,7 +34,7 @@ export default function Bookmark({ node }) {
       </div>
       {imageUrl && (
         <div className="sc-bookmark-image">
-          <img src={imageUrl} alt="" loading="lazy" />
+          <LazyImage src={imageUrl} sources={[proxySectionMediaVariantUrl(image)]} alt="" />
         </div>
       )}
     </a>

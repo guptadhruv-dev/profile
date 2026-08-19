@@ -3,11 +3,16 @@ import SectionButton from './section-button'
 import Links from './profile-links'
 import ThemeToggle from './theme-toggle'
 import Icon from './shortcodes/icon-shortcode'
-import { proxyProfileAssetUrl } from '../lib/proxy'
+import { proxyProfileAssetUrl, proxyProfileAssetVariantUrl } from '../lib/proxy'
 import { useCssFlag, useMediaQuery } from '../lib/media'
 import { joinClassNames } from '../lib/class-names'
+import LazyImage from './lazy-image'
 
-const avatarUrl = proxyProfileAssetUrl('media/profile.png')
+const avatarImagePath = 'media/profile.webp'
+const avatarUrl = proxyProfileAssetUrl(avatarImagePath)
+const avatarSources = [proxyProfileAssetVariantUrl(avatarImagePath)].filter(Boolean)
+const avatarPixelWidth = 915
+const avatarPixelHeight = 1126
 const mobileCssFlag = '--is-mobile'
 const shortHeightQuery = '(max-height: 38rem)'
 const sidebarIdentifier = 'profile-sidebar'
@@ -178,10 +183,18 @@ export default function Sidebar({ activeSection, onNavClick, sections = [] }) {
             aria-hidden={showRail ? 'true' : undefined}
             inert={showRail ? '' : undefined}
           >
-            {!hasShortHeight && !hasAvatarError && avatarUrl && (
+            {!hasShortHeight && !hasAvatarError && avatarUrl && (!isMobile || !isCollapsed) && (
               <div className="sb-identity">
                 <div className="sb-avatar">
-                  <img src={avatarUrl} alt="Dhruv Gupta" onError={() => setHasAvatarError(true)} />
+                  <LazyImage
+                    src={avatarUrl}
+                    sources={avatarSources}
+                    alt="Dhruv Gupta"
+                    width={avatarPixelWidth}
+                    height={avatarPixelHeight}
+                    isEager={!isMobile || !isCollapsed}
+                    onError={() => setHasAvatarError(true)}
+                  />
                 </div>
               </div>
             )}

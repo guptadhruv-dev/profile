@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
-import { cssSize, readProps, safeAspectRatio, sizeStyle } from './shortcode-props'
-import { proxySectionMediaUrl } from '../../lib/proxy'
+import { readProps } from './shortcode-props'
+import { galleryStyle } from './gallery-style'
+import { proxySectionMediaUrl, proxySectionMediaVariantUrl } from '../../lib/proxy'
 import Icon from './icon-shortcode'
+import LazyImage from '../lazy-image'
 
 const maximumGalleryImages = 50
-const galleryFitValues = new Set(['cover', 'contain', 'fill', 'scale-down', 'none'])
 
 function parseGalleryImages(value) {
   if (Array.isArray(value)) return value.slice(0, maximumGalleryImages)
@@ -22,7 +23,14 @@ export default function Gallery({ node }) {
   const { images, width, height, aspect, fit, align } = readProps(node)
   const slides = parseGalleryImages(images)
     .map((item) => (typeof item === 'string' ? { src: item } : item))
-    .map((item) => ({ ...item, src: proxySectionMediaUrl(item?.src) }))
+    .map((item) => ({
+      ...item,
+      src: proxySectionMediaUrl(item?.src),
+      sources: [
+        proxySectionMediaUrl(item?.avif) ?? proxySectionMediaVariantUrl(item?.src),
+        proxySectionMediaUrl(item?.webp),
+      ].filter(Boolean),
+    }))
     .filter((item) => item.src)
   const [carouselRef, carouselApi] = useEmblaCarousel({ loop: slides.length > 1 })
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -44,15 +52,7 @@ export default function Gallery({ node }) {
 
   const hasMultipleSlides = slides.length > 1
   const caption = slides[selectedIndex]?.caption
-  const style = sizeStyle(width, align)
-  const galleryHeight = cssSize(height)
-  const galleryAspectRatio = safeAspectRatio(String(aspect ?? ''))
-  const galleryFit = galleryFitValues.has(fit) ? fit : null
-
-  if (galleryHeight) style['--gallery-height'] = galleryHeight
-  if (galleryAspectRatio) style['--gallery-aspect'] = galleryAspectRatio
-  if (galleryFit) style['--gallery-fit'] = galleryFit
-  if (galleryHeight || galleryAspectRatio) style['--gallery-min-height'] = '0'
+  const style = galleryStyle({ width, height, aspect, fit, align })
 
   return (
     <div className="sc-gallery" style={style}>
@@ -60,7 +60,7 @@ export default function Gallery({ node }) {
         <div className="sc-gallery-container">
           {slides.map((image, imageIndex) => (
             <div className="sc-gallery-slide" key={`${image.src}-${imageIndex}`}>
-              <img src={image.src} alt={image.alt || ''} loading="lazy" />
+              <LazyImage src={image.src} sources={image.sources} alt={image.alt || ''} />
             </div>
           ))}
         </div>

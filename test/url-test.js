@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest'
 import {
   externalLinkProps,
   proxyProfileAssetUrl,
+  proxyProfileAssetVariantUrl,
   proxyProtectedUrl,
   proxySectionMediaUrl,
+  proxySectionMediaVariantUrl,
   safeUrl,
 } from '../src/lib/proxy'
 
@@ -57,5 +59,24 @@ describe('URL policy', () => {
     expect(proxyProfileAssetUrl('DOCUMENTS/RESUME.PDF')).toBe(
       '/api/proxy?target=profile&path=%2Fdocuments%2Fresume.pdf',
     )
+  })
+  it('prefers an avif variant of every webp asset and leaves other formats alone', () => {
+    expect(proxySectionMediaVariantUrl('exp1.webp')).toBe(
+      '/api/proxy?target=profile&path=%2Fmedia%2Fsections%2Fexp1.avif',
+    )
+    expect(proxySectionMediaVariantUrl('EXP_01.WEBP')).toBe(
+      '/api/proxy?target=profile&path=%2Fmedia%2Fsections%2Fexp_01.avif',
+    )
+    expect(proxyProfileAssetVariantUrl('media/profile.webp')).toBe(
+      '/api/proxy?target=profile&path=%2Fmedia%2Fprofile.avif',
+    )
+    expect(proxySectionMediaVariantUrl('legacy.png')).toBeNull()
+    expect(proxySectionMediaVariantUrl('already.avif')).toBeNull()
+  })
+
+  it('applies the same path validation to variants as to the baseline asset', () => {
+    expect(proxySectionMediaVariantUrl('../secret.webp')).toBeNull()
+    expect(proxySectionMediaVariantUrl('https://example.com/image.webp')).toBeNull()
+    expect(proxySectionMediaVariantUrl(null)).toBeNull()
   })
 })

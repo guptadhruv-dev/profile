@@ -8,8 +8,14 @@ import remarkDirectiveShortcodes from '../markdown/remark-directives'
 import remarkPreserveSpaces from '../markdown/preserve-spaces'
 import { createContentSanitizeSchema } from '../markdown/sanitize-content'
 import { shortcodeComponents } from './shortcodes'
-import { externalLinkProps, proxyProtectedUrl, proxySectionMediaUrl } from '../lib/proxy'
+import {
+  externalLinkProps,
+  proxyProtectedUrl,
+  proxySectionMediaUrl,
+  proxySectionMediaVariantUrl,
+} from '../lib/proxy'
 import Reveal from './content-reveal'
+import LazyImage from './lazy-image'
 
 const remarkPlugins = [remarkGfm, remarkDirective, remarkDirectiveShortcodes, remarkPreserveSpaces]
 const variablePattern = /\{\{(\w+)\}\}/g
@@ -50,12 +56,18 @@ const markdownComponents = {
     )
   },
   img({ src, alt, title }) {
-    const imageUrl = proxySectionMediaUrl(src)
-    return imageUrl ? <img src={imageUrl} alt={alt ?? ''} title={title} loading="lazy" /> : null
+    return (
+      <LazyImage
+        src={proxySectionMediaUrl(src)}
+        sources={[proxySectionMediaVariantUrl(src)]}
+        alt={alt ?? ''}
+        title={title}
+      />
+    )
   },
 }
 
-function Section({ id, vars = {}, content }) {
+function Section({ vars = {}, content }) {
   const markdown = useMemo(
     () =>
       String(content ?? '').replace(variablePattern, (matchedVariable, variableName) => {
@@ -65,19 +77,17 @@ function Section({ id, vars = {}, content }) {
     [content, vars],
   )
   return (
-    <section id={id} className="section-pane">
-      <div className="section-body">
-        <Reveal className="prose">
-          <ReactMarkdown
-            remarkPlugins={remarkPlugins}
-            rehypePlugins={rehypePlugins}
-            components={markdownComponents}
-          >
-            {markdown}
-          </ReactMarkdown>
-        </Reveal>
-      </div>
-    </section>
+    <div className="section-body">
+      <Reveal className="prose">
+        <ReactMarkdown
+          remarkPlugins={remarkPlugins}
+          rehypePlugins={rehypePlugins}
+          components={markdownComponents}
+        >
+          {markdown}
+        </ReactMarkdown>
+      </Reveal>
+    </div>
   )
 }
 

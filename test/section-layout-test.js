@@ -28,6 +28,14 @@ describe('section scrolling layout', () => {
     expect(hasDeclaration(scrollContainerRules, 'height: 100dvh')).toBe(true)
   })
 
+  it('reserves space for unmounted sections outside the section pane rules', () => {
+    const sectionRules = readRuleBodies('(?<![+\\w-])\\.section-pane')
+    const placeholderRules = readRuleBodies('\\.section-pending')
+
+    expect(hasDeclaration(sectionRules, 'min-block-size')).toBe(false)
+    expect(hasDeclaration(placeholderRules, 'min-block-size')).toBe(true)
+  })
+
   it('separates sections without trailing a border after the last one', () => {
     const sectionRules = readRuleBodies('(?<![+\\w-])\\.section-pane')
     const sectionBoundaryRules = readRuleBodies('\\.section-pane:not\\(:last-child\\)')
